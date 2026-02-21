@@ -1,0 +1,220 @@
+---
+title: "World Development Indicators Analysis (2022)"
+author: "Sarah Shao"
+date: 2026-02-20
+format:
+  html:
+    toc: false
+    number-sections: true
+    theme: cosmo
+  pdf:
+    toc: false
+    number-sections: true
+    documentclass: article
+bibliography: references.bib
+csl: https://www.zotero.org/styles/apa
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+## Introduction
+
+This report analyses a cross-sectional sample of economic indicators for the year 2022 using data from the World Development Indicators database maintained by the World Bank (@worldbank_wdi_2022). The dataset includes key macroeconomic variables that capture income levels, price stability, and economic performance across countries.
+
+The objective of this analysis is to explore cross-country variation in three core indicators: GDP per capita, inflation rate, and GDP growth rate. These variables provide insight into differences in economic development, macroeconomic stability, and post-pandemic recovery patterns.
+
+Using exploratory data analysis and visualisation techniques, this report examines the distribution of these indicators and investigates potential relationships among them. Summary statistics and graphical representations are used to highlight dispersion, skewness, and the presence of outliers across countries.
+
+Understanding the variation in these macroeconomic indicators is important for interpreting global economic heterogeneity and for situating the findings within broader macroeconomic research (@fischer1993).
+
+## Load the Dataset
+
+```{python}
+# Import necessary libraries
+import pandas as pd
+
+# Load the dataset
+url = "https://raw.githubusercontent.com/danilofreire/qtm350/main/assignments/wdi.csv"
+wdi = pd.read_csv(url)
+
+# Display first few rows
+wdi.head()
+```
+
+## Exploratory Data Analysis
+
+In this section, I explore three key economic indicators for 2022:
+
+1. GDP per capita  
+2. Inflation rate  
+3. GDP growth rate  
+
+I summarise their distributions and visualise key patterns.
+
+---
+
+### 1. GDP per Capita
+
+```{python}
+import matplotlib.pyplot as plt
+
+# Summary statistics
+wdi["gdp_per_capita"].describe()
+```
+
+```{python}
+#| label: fig-gdp-hist
+#| fig-cap: "Distribution of GDP per capita across countries in 2022 (World Bank, 2022)."
+# Histogram
+plt.figure()
+wdi["gdp_per_capita"].dropna().hist(bins=30)
+plt.xlabel("GDP per Capita")
+plt.ylabel("Frequency")
+plt.title("Distribution of GDP per Capita (2022)")
+plt.show()
+```
+
+Finding 1
+
+As shown in @fig-gdp-hist, GDP per capita is highly right-skewed. Most countries cluster at lower income levels, while a small number of countries exhibit extremely high income values. The long right tail confirms substantial global income inequality.
+
+---
+
+### 2. Inflation Rate
+
+```{python}
+wdi["inflation_rate"].describe()
+```
+
+```{python}
+#| label: fig-inflation-hist
+#| fig-cap: "Distribution of inflation rates across countries in 2022 (World Bank, 2022)."
+plt.figure()
+wdi["inflation_rate"].dropna().hist(bins=30)
+plt.xlabel("Inflation Rate (%)")
+plt.ylabel("Frequency")
+plt.title("Distribution of Inflation Rates (2022)")
+plt.show()
+```
+
+
+Finding 2
+
+Figure @fig-inflation-hist shows that most countries experienced inflation between 0% and 20% in 2022. However, several extreme outliers generate a long right tail. The difference between the median and maximum values indicates strong dispersion in inflation outcomes.
+
+---
+
+### 3. GDP Growth Rate
+
+```{python}
+wdi["gdp_growth_rate"].describe()
+```
+
+```{python}
+#| label: fig-growth-hist
+#| fig-cap: "Distribution of GDP growth rates across countries in 2022 (World Bank, 2022)."
+plt.figure()
+wdi["gdp_growth_rate"].dropna().hist(bins=30)
+plt.xlabel("GDP Growth Rate (%)")
+plt.ylabel("Frequency")
+plt.title("Distribution of GDP Growth Rates (2022)")
+plt.show()
+```
+
+Finding 3
+
+As illustrated in @fig-growth-hist, most countries recorded moderate GDP growth between 0% and 10%. A few countries experienced economic contraction, while one extreme outlier exceeds 60%, creating dispersion on both tails of the distribution.
+
+---
+
+Overall Observations
+
+- Economic indicators show substantial cross-country heterogeneity.
+- Income levels are highly unequal.
+- Inflation and growth rates show large dispersion, likely influenced by global macroeconomic conditions in 2022.
+
+## Visualisations
+
+Data source: World Bank, *World Development Indicators* (WDI), 2022 sample dataset provided in course repository.
+
+### Plot 1: Scatter Plot (GDP per Capita vs Inflation)
+
+```{python}
+#| echo: false
+#| label: fig-scatter
+#| fig-cap: "Relationship between GDP per capita and inflation (WDI, 2022)."
+import matplotlib.pyplot as plt
+
+# Drop missing values for the two variables used in the scatter plot
+df_scatter = wdi[["gdp_per_capita", "inflation_rate"]].dropna()
+
+plt.figure()
+plt.scatter(df_scatter["gdp_per_capita"], df_scatter["inflation_rate"])
+plt.title("GDP per Capita vs Inflation Rate (2022)")
+plt.xlabel("GDP per Capita (current US$)")
+plt.ylabel("Inflation Rate (%)")
+plt.show()
+```
+
+As shown in @fig-scatter, there is no clear linear relationship between GDP per capita and inflation in 2022. While some high-income countries experienced moderate inflation, inflation rates vary widely across income levels.
+
+### Plot 2: Bar Chart (Top 10 Countries by GDP per Capita)
+
+```{python}
+#| echo: false
+#| label: fig-bar
+#| fig-cap: "Top 10 countries by GDP per capita in 2022."
+import matplotlib.pyplot as plt
+
+top10 = (
+    wdi[["country", "gdp_per_capita"]]
+    .dropna()
+    .sort_values("gdp_per_capita", ascending=False)
+    .head(10)
+)
+
+plt.figure()
+plt.bar(top10["country"], top10["gdp_per_capita"])
+plt.title("Top 10 Countries by GDP per Capita (2022)")
+plt.xlabel("Country")
+plt.ylabel("GDP per Capita (current US$)")
+plt.xticks(rotation=45, ha="right")
+plt.tight_layout()
+plt.show()
+```
+
+Figure @fig-bar highlights the top 10 countries by GDP per capita. The large gap between these countries and the rest of the sample helps explain the strong right-skew observed in the distribution of GDP per capita.
+
+Notes
+
+- The scatter plot helps assess whether higher-income countries tend to experience higher or lower inflation in 2022.
+- The bar chart highlights the strongest outliers in GDP per capita and provides context for why the GDP-per-capita distribution is highly right-skewed.
+
+## Summary Table of Key Statistics
+
+```{python}
+#| echo: false
+#| label: tbl-summary
+#| tbl-cap: "Summary statistics for selected economic indicators (WDI, 2022). Source: World Bank, World Development Indicators."
+
+import pandas as pd
+
+# Select indicators
+indicators = ["gdp_per_capita", "inflation_rate", "gdp_growth_rate"]
+
+# Compute key statistics
+summary = wdi[indicators].describe().loc[["count", "mean", "50%", "std", "min", "max"]]
+
+# Rename rows for clarity
+summary.index = ["Count", "Mean", "Median", "Standard Deviation", "Minimum", "Maximum"]
+
+summary
+```
+
+*Source: World Bank, World Development Indicators (2022).*
+
+The descriptive statistics reported in @tbl-summary show that GDP per capita exhibits substantial dispersion, with a large difference between the median and the maximum value. Similarly, inflation and growth rates display considerable cross-country variation.
+
+## References

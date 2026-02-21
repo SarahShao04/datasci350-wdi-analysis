@@ -1,0 +1,148 @@
+---
+title: "World Development Indicators (2022)"
+subtitle: "Exploratory Analysis of GDP, Inflation, and Growth"
+author: "Sarah Shao"
+date: today
+format:
+  revealjs:
+    theme: solarized
+    slide-number: true
+    transition: fade
+    incremental: true
+    background-transition: fade
+    center: true
+    progress: true
+    toc: false
+execute:
+  echo: false
+  warning: false
+  message: false
+  freeze: false
+bibliography: references.bib
+csl: https://www.zotero.org/styles/apa
+---
+
+## Overview
+
+- Data: World Development Indicators (World Bank, 2022) (@worldbank_wdi_2022)
+- Year analysed: 2022
+- Indicators:
+  - GDP per capita
+  - Inflation rate
+  - GDP growth rate
+- Objective: Examine cross-country economic heterogeneity
+
+---
+
+## Load the Dataset
+
+```{python}
+#| echo: false
+#| output: true
+import pandas as pd
+import matplotlib.pyplot as plt
+
+url = "https://raw.githubusercontent.com/danilofreire/qtm350/main/assignments/wdi.csv"
+wdi = pd.read_csv(url)
+
+print("✅ Loaded WDI:", wdi.shape, "(rows, columns)")
+wdi.head(5)
+```
+
+---
+
+## GDP per Capita Distribution
+
+```{python}
+plt.figure(figsize=(10,6))
+wdi["gdp_per_capita"].dropna().hist(bins=30)
+plt.title("Distribution of GDP per Capita (2022)")
+plt.xlabel("GDP per Capita (current US$)")
+plt.ylabel("Number of Countries")
+plt.show()
+```
+
+## Finding 1
+
+- Highly right-skewed distribution  
+- Majority of countries at lower income levels  
+- Small number of extreme high-income outliers  
+
+---
+
+## Inflation Distribution
+
+```{python}
+plt.figure(figsize=(10,6))
+wdi["inflation_rate"].dropna().hist(bins=30)
+plt.title("Distribution of Inflation Rates (2022)")
+plt.xlabel("Inflation Rate (%)")
+plt.ylabel("Number of Countries")
+plt.show()
+```
+
+## Finding 2
+
+- Most countries between 0%–20%  
+- Extreme outliers create long right tail  
+- Some countries experienced deflation  
+
+---
+
+## GDP Growth Distribution
+
+```{python}
+plt.figure(figsize=(10,6))
+wdi["gdp_growth_rate"].dropna().hist(bins=30)
+plt.title("Distribution of GDP Growth Rates (2022)")
+plt.xlabel("GDP Growth Rate (%)")
+plt.ylabel("Number of Countries")
+plt.show()
+```
+
+## Finding 3
+
+- Moderate growth (0–10%) for most countries  
+- Some negative growth cases  
+- One extreme high-growth outlier  
+
+---
+
+## Relationship: GDP per Capita & Inflation
+
+```{python}
+plt.figure(figsize=(10,6))
+plt.scatter(wdi["gdp_per_capita"], wdi["inflation_rate"])
+plt.title("GDP per Capita vs Inflation (2022)")
+plt.xlabel("GDP per Capita (current US$)")
+plt.ylabel("Inflation Rate (%)")
+plt.show()
+```
+
+## Interpretation
+- No strong linear relationship  
+- Inflation varies across income levels  
+- Consistent with macroeconomic research (@fischer1993)
+
+---
+
+## Key Insights
+
+- Strong cross-country heterogeneity  
+- Income inequality reflected in skewed GDP distribution  
+- Inflation and growth display wide dispersion  
+- Outliers strongly influence distributions  
+
+---
+
+## Conclusion
+
+The 2022 WDI data reveal substantial economic variation across countries.
+
+Income levels are highly unequal, and macroeconomic stability differs widely across regions.
+
+These findings highlight the importance of understanding dispersion and structural heterogeneity in global economic analysis.
+
+---
+
+## References

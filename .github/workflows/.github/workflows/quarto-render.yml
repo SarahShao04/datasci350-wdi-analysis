@@ -1,0 +1,58 @@
+name: Render Quarto Outputs
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          version: "latest"
+          tinytex: true 
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.9.6"
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # 根据你 dashboard / 报告用到的包补全即可
+          python -m pip install pandas numpy matplotlib panel jupyter nbformat nbclient ipykernel
+
+      - name: Render Report (HTML + PDF)
+        run: |
+          quarto render Report.qmd --to html
+          quarto render Report.qmd --to pdf
+
+      - name: Render Presentation (Revealjs)
+        run: |
+          quarto render Presentation.qmd --to revealjs
+
+      - name: Render Interactive Dashboard (HTML)
+        run: |
+          quarto render "Interactive Dashboard.qmd" --to dashboard
+
+      - name: Upload rendered files as artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: quarto-outputs
+          path: |
+            *.html
+            *.pdf
+            *_files/**
+            Presentation_files/**
+            Report_files/**
+            Interactive Dashboard_files/**

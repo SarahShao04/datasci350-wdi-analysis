@@ -1,0 +1,17 @@
+/.quarto/
+**/*.quarto_ipynb
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Quarto
+*_files/
+.quarto/
+
+# Mac
+.DS_Store
+
+# Jupyter
+.ipynb_checkpoints/

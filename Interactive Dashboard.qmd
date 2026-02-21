@@ -1,0 +1,182 @@
+---
+title: "WDI 2022 Interactive Dashboard (Bonus)"
+author: "Sarah Shao"
+date: 2026-02-20
+format:
+  dashboard:
+    theme: cosmo
+    orientation: columns
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+## Setup
+
+```{python}
+import os
+import pandas as pd
+import numpy as np
+import panel as pn
+import matplotlib.pyplot as plt
+
+pn.extension()  # enable panel in HTML
+
+# Load dataset (prefer local wdi.csv in repo)
+local_path = "wdi.csv"
+url = "https://raw.githubusercontent.com/danilofreire/qtm350/main/assignments/wdi.csv"
+
+if os.path.exists(local_path):
+    wdi = pd.read_csv(local_path)
+else:
+    wdi = pd.read_csv(url)
+
+# Keep a clean copy
+df = wdi.copy()
+
+# Candidate indicators (use your assignment columns)
+indicator_map = {
+    "GDP per Capita (current US$)": "gdp_per_capita",
+    "Inflation Rate (%)": "inflation_rate",
+    "GDP Growth Rate (%)": "gdp_growth_rate",
+    "Exports (% of GDP)": "exports_gdp_share",
+}
+
+# Some datasets may not include all columns; keep only existing ones
+indicator_map = {k: v for k, v in indicator_map.items() if v in df.columns}
+
+df["country"] = df["country"].astype(str)
+
+countries = ["All"] + sorted(df["country"].dropna().unique().tolist())
+```
+
+## Controls {.sidebar}
+```{python}
+country_selector = pn.widgets.Select(
+    name="Country",
+    options=countries,
+    value="All"
+)
+
+indicator_selector = pn.widgets.Select(
+    name="Indicator (Histogram)",
+    options=list(indicator_map.keys()),
+    value=list(indicator_map.keys())[0] if len(indicator_map) > 0 else None
+)
+
+bins_slider = pn.widgets.IntSlider(
+    name="Histogram bins",
+    start=10, end=60, step=5, value=30
+)
+
+dropna_toggle = pn.widgets.Checkbox(
+    name="Drop missing values (NA)",
+    value=True
+)
+
+pn.Column(
+    "### Filters",
+    country_selector,
+    indicator_selector,
+    bins_slider,
+    dropna_toggle
+)
+```
+
+## Histogram
+```{python}
+@pn.depends(
+    country=country_selector.param.value,
+    indicator_label=indicator_selector.param.value,
+    bins=bins_slider.param.value,
+    dropna=dropna_toggle.param.value
+)
+def hist_plot(country, indicator_label, bins, dropna):
+    if indicator_label is None:
+        return pn.pane.Markdown("No indicators available in this dataset.")
+
+    col = indicator_map[indicator_label]
+
+    data = df if country == "All" else df[df["country"] == country]
+    x = data[col]
+
+    if dropna:
+        x = x.dropna()
+
+    if x.empty:
+        return pn.pane.Markdown("No data available for the selected options.")
+
+    fig, ax = plt.subplots(figsize=(8, 3.8))
+    ax.hist(x, bins=bins)
+    ax.set_title(f"Distribution of {indicator_label} ({country})")
+    ax.set_xlabel(indicator_label)
+    ax.set_ylabel("Number of Countries")
+    ax.grid(True, alpha=0.3)
+
+    plt.close(fig)
+    return pn.pane.Matplotlib(fig, tight=True)
+
+pn.Column(
+    "### Distribution (Interactive)",
+    hist_plot,
+    pn.pane.Markdown("*Source: World Bank, World Development Indicators (2022).*")
+)
+```
+
+## Scatter Plot
+```{python}
+# Two-axis scatter: GDP per Capita vs Inflation (common & interpretable)
+x_default = "gdp_per_capita" if "gdp_per_capita" in df.columns else None
+y_default = "inflation_rate" if "inflation_rate" in df.columns else None
+
+scatter_x = pn.widgets.Select(
+    name="X-axis",
+    options=[v for v in indicator_map.values()],
+    value=x_default if x_default in indicator_map.values() else list(indicator_map.values())[0]
+)
+
+scatter_y = pn.widgets.Select(
+    name="Y-axis",
+    options=[v for v in indicator_map.values()],
+    value=y_default if y_default in indicator_map.values() else list(indicator_map.values())[0]
+)
+
+@pn.depends(
+    country=country_selector.param.value,
+    xcol=scatter_x.param.value,
+    ycol=scatter_y.param.value,
+    dropna=dropna_toggle.param.value
+)
+def scatter_plot(country, xcol, ycol, dropna):
+    data = df if country == "All" else df[df["country"] == country]
+
+    x = data[xcol]
+    y = data[ycol]
+
+    if dropna:
+        keep = (~x.isna()) & (~y.isna())
+        x = x[keep]
+        y = y[keep]
+
+    if len(x) == 0:
+        return pn.pane.Markdown("No data available for the selected options.")
+
+    fig, ax = plt.subplots(figsize=(8, 4.2))
+    ax.scatter(x, y, alpha=0.7)
+    ax.set_title(f"{xcol} vs {ycol} ({country})")
+    ax.set_xlabel(xcol)
+    ax.set_ylabel(ycol)
+    ax.grid(True, alpha=0.3)
+
+    plt.close(fig)
+    return pn.pane.Matplotlib(fig, tight=True)
+
+pn.Column(
+    "### Relationship (Interactive)",
+    pn.Row(scatter_x, scatter_y),
+    scatter_plot,
+    pn.pane.Markdown("*Source: World Bank, World Development Indicators (2022).*")
+)
+```
+
