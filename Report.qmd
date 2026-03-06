@@ -4,9 +4,10 @@ author: "Sarah Shao"
 date: 2026-02-20
 format:
   html:
+    theme: cosmo
     toc: false
     number-sections: true
-    theme: cosmo
+    embed-resources: true
   pdf:
     toc: false
     number-sections: true
